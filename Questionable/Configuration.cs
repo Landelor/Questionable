@@ -23,6 +23,7 @@ internal sealed class Configuration : IPluginConfiguration
     public SinglePlayerDutyConfiguration SinglePlayerDuties { get; } = new();
     public NotificationConfiguration Notifications { get; } = new();
     public AdvancedConfiguration Advanced { get; } = new();
+    public RepairConfiguration Repairs { get; } = new();
     public WindowConfig DebugWindowConfig { get; } = new();
     public WindowConfig ConfigWindowConfig { get; } = new();
 
@@ -119,5 +120,18 @@ internal sealed class Configuration : IPluginConfiguration
             string? value = reader.Value?.ToString();
             return value != null ? ElementId.FromString(value) : null;
         }
+    }
+
+    internal sealed class RepairConfiguration
+    {
+        public bool Enabled { get; set; }
+        public int DurabilityThreshold { get; set; } = 20;
+        public ERepairMethod RepairMethod { get; set; } = ERepairMethod.SelfRepair;
+    }
+
+    internal enum ERepairMethod
+    {
+        SelfRepair,
+        RepairNpc
     }
 }

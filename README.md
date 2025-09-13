@@ -55,16 +55,16 @@ Questionable requires the following plugins to function properly:
 ## Usage
 
 ### Basic Commands
-- `/questionable` or `/qst` - Open the main plugin window
-- `/qst start` - Starts doing quests
-- `/qst stop` - Stops doing quests
-- `/qst reload` - Reload all quest data
-- `/qst which` - Shows all quests starting with your selected target
-- `/qst zone` - Shows all quests starting in the current zone (only includes quests with a known quest path, and currently visible unaccepted quests)
+- `/questionable` or `/qld` - Open the main plugin window
+- `/qld start` - Starts doing quests
+- `/qld stop` - Stops doing quests
+- `/qld reload` - Reload all quest data
+- `/qld which` - Shows all quests starting with your selected target
+- `/qld zone` - Shows all quests starting in the current zone (only includes quests with a known quest path, and currently visible unaccepted quests)
 
 ### Getting Started
 1. Accept a quest manually or let the plugin handle MSQ progression
-2. Open the Questionable window (`/qst`)
+2. Open the Questionable window (`/qld`)
 3. Click the **Play** button to start automation
 4. The plugin will handle navigation, dialogue, and quest completion
 
@@ -83,7 +83,7 @@ Questionable requires the following plugins to function properly:
 
 ## Configuration
 
-Access configuration through the main plugin window or `/questionable config`:
+Access configuration through the main plugin window or `/qld config`:
 
 - **Combat Module**: Choose your preferred combat automation plugin
 - **Stop Conditions**: Set level or quest-based stopping points  

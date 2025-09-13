@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(dotnet --version)",
+      "Bash(dotnet clean:*)",
+      "Bash(git submodule:*)",
+      "Bash(dotnet nuget add source:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet nuget remove source:*)",
+      "Bash(dotnet nuget list:*)",
+      "Bash(dotnet build:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -28,7 +28,7 @@ internal sealed class DebugOverlay : Window
     public DebugOverlay(QuestController questController, QuestRegistry questRegistry, IGameGui gameGui,
         IClientState clientState, ICondition condition, AetheryteData aetheryteData, IObjectTable objectTable,
         CombatController combatController, Configuration configuration)
-        : base("Questionable Debug Overlay###QuestionableDebugOverlay",
+        : base("QuestionableLanDev Debug Overlay###QuestionableLanDevDebugOverlay",
             ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoBackground |
             ImGuiWindowFlags.NoInputs | ImGuiWindowFlags.NoSavedSettings, true)
     {

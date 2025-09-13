@@ -16,7 +16,7 @@ namespace Questionable.Controller;
 
 internal sealed class CommandHandler : IDisposable
 {
-    public const string MessageTag = "Questionable";
+    public const string MessageTag = "QuestionableLanDev";
     public const ushort TagColor = 576;
 
     private readonly ICommandManager _commandManager;
@@ -80,18 +80,18 @@ internal sealed class CommandHandler : IDisposable
         _configuration = configuration;
 
         _clientState.Logout += OnLogout;
-        _commandManager.AddHandler("/qst", new CommandInfo(ProcessCommand)
+        _commandManager.AddHandler("/qld", new CommandInfo(ProcessCommand)
         {
             HelpMessage = string.Join($"{Environment.NewLine}\t",
                 "Opens the Questing window",
-                "/qst help - displays simplified commands",
-                "/qst help-all - displays all available commands",
-                "/qst config - opens the configuration window",
-                "/qst start - starts doing quests",
-                "/qst stop - stops doing quests"),
+                "/qld help - displays simplified commands",
+                "/qld help-all - displays all available commands",
+                "/qld config - opens the configuration window",
+                "/qld start - starts doing quests",
+                "/qld stop - stops doing quests"),
         });
 #if DEBUG
-        _commandManager.AddHandler("/qst@", new CommandInfo(ProcessDebugCommand)
+        _commandManager.AddHandler("/qld@", new CommandInfo(ProcessDebugCommand)
         {
             ShowInHelp = false,
         });
@@ -109,35 +109,35 @@ internal sealed class CommandHandler : IDisposable
             case "h":
             case "help":
                 _chatGui.Print("Available commands:", MessageTag, TagColor);
-                _chatGui.Print("/qst - toggles the Questing window", MessageTag, TagColor);
-                _chatGui.Print("/qst help - displays simplified commands", MessageTag, TagColor);
-                _chatGui.Print("/qst help-all - displays all available commands", MessageTag, TagColor);
-                _chatGui.Print("/qst config - opens the configuration window", MessageTag, TagColor);
-                _chatGui.Print("/qst start - starts doing quests", MessageTag, TagColor);
-                _chatGui.Print("/qst stop - stops doing quests", MessageTag, TagColor);
-                _chatGui.Print("/qst reload - reload all quest data", MessageTag, TagColor);
+                _chatGui.Print("/qld - toggles the Questing window", MessageTag, TagColor);
+                _chatGui.Print("/qld help - displays simplified commands", MessageTag, TagColor);
+                _chatGui.Print("/qld help-all - displays all available commands", MessageTag, TagColor);
+                _chatGui.Print("/qld config - opens the configuration window", MessageTag, TagColor);
+                _chatGui.Print("/qld start - starts doing quests", MessageTag, TagColor);
+                _chatGui.Print("/qld stop - stops doing quests", MessageTag, TagColor);
+                _chatGui.Print("/qld reload - reload all quest data", MessageTag, TagColor);
                 break;
 
             case "ha":
             case "help-all":
                 _chatGui.Print("Available commands:", MessageTag, TagColor);
-                _chatGui.Print("/qst - toggles the Questing window", MessageTag, TagColor);
-                _chatGui.Print("/qst help - displays available commands", MessageTag, TagColor);
-                _chatGui.Print("/qst help-all - displays all available commands", MessageTag, TagColor);
-                _chatGui.Print("/qst config - opens the configuration window", MessageTag, TagColor);
-                _chatGui.Print("/qst start - starts doing quests", MessageTag, TagColor);
-                _chatGui.Print("/qst stop - stops doing quests", MessageTag, TagColor);
-                _chatGui.Print("/qst reload - reload all quest data", MessageTag, TagColor);
-                _chatGui.Print("/qst do <questId> - highlights the specified quest in the debug overlay (requires debug overlay to be enabled)", MessageTag, TagColor);
-                _chatGui.Print("/qst do - clears the highlighted quest in the debug overlay (requires debug overlay to be enabled)", MessageTag, TagColor);
-                _chatGui.Print("/qst next <questId> - sets the next quest to do (or clears it if no questId is specified)", MessageTag, TagColor);
-                _chatGui.Print("/qst sim <questId> [sequence] [step] - simulates the specified quest (or clears it if no questId is specified)", MessageTag, TagColor);
-                _chatGui.Print("/qst which - shows all quests starting with your selected target", MessageTag, TagColor);
-                _chatGui.Print("/qst zone - shows all quests starting in the current zone (only includes quests with a known quest path, and currently visible unaccepted quests)", MessageTag, TagColor);
-                _chatGui.Print("/qst journal - toggles the Journal Progress window", MessageTag, TagColor);
-                _chatGui.Print("/qst priority - toggles the Priority window", MessageTag, TagColor);
-                _chatGui.Print("/qst mountid - prints information about your current mount", MessageTag, TagColor);
-                _chatGui.Print("/qst handle-interrupt - makes Questionable handle queued interrupts immediately (useful if you manually start combat)", MessageTag, TagColor);
+                _chatGui.Print("/qld - toggles the Questing window", MessageTag, TagColor);
+                _chatGui.Print("/qld help - displays available commands", MessageTag, TagColor);
+                _chatGui.Print("/qld help-all - displays all available commands", MessageTag, TagColor);
+                _chatGui.Print("/qld config - opens the configuration window", MessageTag, TagColor);
+                _chatGui.Print("/qld start - starts doing quests", MessageTag, TagColor);
+                _chatGui.Print("/qld stop - stops doing quests", MessageTag, TagColor);
+                _chatGui.Print("/qld reload - reload all quest data", MessageTag, TagColor);
+                _chatGui.Print("/qld do <questId> - highlights the specified quest in the debug overlay (requires debug overlay to be enabled)", MessageTag, TagColor);
+                _chatGui.Print("/qld do - clears the highlighted quest in the debug overlay (requires debug overlay to be enabled)", MessageTag, TagColor);
+                _chatGui.Print("/qld next <questId> - sets the next quest to do (or clears it if no questId is specified)", MessageTag, TagColor);
+                _chatGui.Print("/qld sim <questId> [sequence] [step] - simulates the specified quest (or clears it if no questId is specified)", MessageTag, TagColor);
+                _chatGui.Print("/qld which - shows all quests starting with your selected target", MessageTag, TagColor);
+                _chatGui.Print("/qld zone - shows all quests starting in the current zone (only includes quests with a known quest path, and currently visible unaccepted quests)", MessageTag, TagColor);
+                _chatGui.Print("/qld journal - toggles the Journal Progress window", MessageTag, TagColor);
+                _chatGui.Print("/qld priority - toggles the Priority window", MessageTag, TagColor);
+                _chatGui.Print("/qld mountid - prints information about your current mount", MessageTag, TagColor);
+                _chatGui.Print("/qld handle-interrupt - makes QuestionableLanDev handle queued interrupts immediately (useful if you manually start combat)", MessageTag, TagColor);
                 break;
 
             case "c":
@@ -393,9 +393,9 @@ internal sealed class CommandHandler : IDisposable
     public void Dispose()
     {
 #if DEBUG
-        _commandManager.RemoveHandler("/qst@");
+        _commandManager.RemoveHandler("/qld@");
 #endif
-        _commandManager.RemoveHandler("/qst");
+        _commandManager.RemoveHandler("/qld");
         _clientState.Logout -= OnLogout;
     }
 }

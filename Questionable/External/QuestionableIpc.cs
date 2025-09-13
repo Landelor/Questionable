@@ -15,18 +15,18 @@ namespace Questionable.External;
 
 internal sealed class QuestionableIpc : IDisposable
 {
-    private const string IpcIsRunning = "Questionable.IsRunning";
-    private const string IpcGetCurrentQuestId = "Questionable.GetCurrentQuestId";
-    private const string IpcGetCurrentStepData = "Questionable.GetCurrentStepData";
-    private const string IpcGetCurrentlyActiveEventQuests = "Questionable.GetCurrentlyActiveEventQuests";
-    private const string IpcStartQuest = "Questionable.StartQuest";
-    private const string IpcStartSingleQuest = "Questionable.StartSingleQuest";
-    private const string IpcIsQuestLocked = "Questionable.IsQuestLocked";
-    private const string IpcImportQuestPriority = "Questionable.ImportQuestPriority";
-    private const string IpcClearQuestPriority = "Questionable.ClearQuestPriority";
-    private const string IpcAddQuestPriority = "Questionable.AddQuestPriority";
-    private const string IpcInsertQuestPriority = "Questionable.InsertQuestPriority";
-    private const string IpcExportQuestPriority = "Questionable.ExportQuestPriority";
+    private const string IpcIsRunning = "QuestionableLanDev.IsRunning";
+    private const string IpcGetCurrentQuestId = "QuestionableLanDev.GetCurrentQuestId";
+    private const string IpcGetCurrentStepData = "QuestionableLanDev.GetCurrentStepData";
+    private const string IpcGetCurrentlyActiveEventQuests = "QuestionableLanDev.GetCurrentlyActiveEventQuests";
+    private const string IpcStartQuest = "QuestionableLanDev.StartQuest";
+    private const string IpcStartSingleQuest = "QuestionableLanDev.StartSingleQuest";
+    private const string IpcIsQuestLocked = "QuestionableLanDev.IsQuestLocked";
+    private const string IpcImportQuestPriority = "QuestionableLanDev.ImportQuestPriority";
+    private const string IpcClearQuestPriority = "QuestionableLanDev.ClearQuestPriority";
+    private const string IpcAddQuestPriority = "QuestionableLanDev.AddQuestPriority";
+    private const string IpcInsertQuestPriority = "QuestionableLanDev.InsertQuestPriority";
+    private const string IpcExportQuestPriority = "QuestionableLanDev.ExportQuestPriority";
 
     private readonly QuestController _questController;
     private readonly QuestRegistry _questRegistry;

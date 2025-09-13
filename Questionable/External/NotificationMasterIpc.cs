@@ -16,7 +16,7 @@ internal sealed class NotificationMasterIpc(IDalamudPluginInterface pluginInterf
             return;
 
         if (config.ShowTrayMessage)
-            _api.DisplayTrayNotification("Questionable", message);
+            _api.DisplayTrayNotification("QuestionableLanDev", message);
 
         if (config.FlashTaskbar)
             _api.FlashTaskbarIcon();

@@ -19,7 +19,7 @@ internal sealed class QuestValidationWindow : LWindow
 
     public QuestValidationWindow(QuestValidator questValidator, QuestData questData,
         IDalamudPluginInterface pluginInterface)
-        : base("Quest Validation###QuestionableValidator")
+        : base("Quest Validation###QuestionableLanDevValidator")
     {
         _questValidator = questValidator;
         _questData = questData;

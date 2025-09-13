@@ -17,8 +17,8 @@ internal sealed class BossModIpc
 
     private static readonly ReadOnlyDictionary<EPreset, PresetDefinition> PresetDefinitions = new Dictionary<EPreset, PresetDefinition>
         {
-            { EPreset.Overworld, new PresetDefinition("Questionable", "Overworld") },
-            { EPreset.QuestBattle, new PresetDefinition("Questionable - Quest Battles", "QuestBattle") },
+            { EPreset.Overworld, new PresetDefinition("QuestionableLanDev", "Overworld") },
+            { EPreset.QuestBattle, new PresetDefinition("QuestionableLanDev - Quest Battles", "QuestBattle") },
         }.AsReadOnly();
 
     private readonly Configuration _configuration;
@@ -124,7 +124,7 @@ internal sealed class BossModIpc
         {
             Stream stream =
                 typeof(BossModIpc).Assembly.GetManifestResourceStream(
-                    $"Questionable.Controller.CombatModules.BossModPreset.{name}") ??
+                    $"QuestionableLanDev.Controller.CombatModules.BossModPreset.{name}") ??
                 throw new InvalidOperationException($"Preset {name} was not found");
             using var reader = new StreamReader(stream);
             return reader.ReadToEnd();

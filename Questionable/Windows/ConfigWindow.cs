@@ -15,6 +15,7 @@ internal sealed class ConfigWindow : LWindow, IPersistableWindowConfig
     private readonly SinglePlayerDutyConfigComponent _singlePlayerDutyConfigComponent;
     private readonly StopConditionComponent _stopConditionComponent;
     private readonly NotificationConfigComponent _notificationConfigComponent;
+    private readonly RepairConfigComponent _repairConfigComponent;
     private readonly DebugConfigComponent _debugConfigComponent;
     private readonly Configuration _configuration;
 
@@ -26,9 +27,10 @@ internal sealed class ConfigWindow : LWindow, IPersistableWindowConfig
         SinglePlayerDutyConfigComponent singlePlayerDutyConfigComponent,
         StopConditionComponent stopConditionComponent,
         NotificationConfigComponent notificationConfigComponent,
+        RepairConfigComponent repairConfigComponent,
         DebugConfigComponent debugConfigComponent,
         Configuration configuration)
-        : base("Config - Questionable###QuestionableConfig", ImGuiWindowFlags.AlwaysAutoResize)
+        : base("Config - QuestionableLanDev###QuestionableLanDevConfig", ImGuiWindowFlags.AlwaysAutoResize)
     {
         _pluginInterface = pluginInterface;
         _generalConfigComponent = generalConfigComponent;
@@ -37,6 +39,7 @@ internal sealed class ConfigWindow : LWindow, IPersistableWindowConfig
         _singlePlayerDutyConfigComponent = singlePlayerDutyConfigComponent;
         _stopConditionComponent = stopConditionComponent;
         _notificationConfigComponent = notificationConfigComponent;
+        _repairConfigComponent = repairConfigComponent;
         _debugConfigComponent = debugConfigComponent;
         _configuration = configuration;
     }
@@ -55,6 +58,7 @@ internal sealed class ConfigWindow : LWindow, IPersistableWindowConfig
         _singlePlayerDutyConfigComponent.DrawTab();
         _stopConditionComponent.DrawTab();
         _notificationConfigComponent.DrawTab();
+        _repairConfigComponent.DrawTab();
         _debugConfigComponent.DrawTab();
     }
 

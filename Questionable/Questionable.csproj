@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Dalamud.NET.Sdk/13.0.0">
     <PropertyGroup>
+        <AssemblyName>QuestionableLanDev</AssemblyName>
         <OutputPath>dist</OutputPath>
         <PathMap Condition="$(SolutionDir) != ''">$(SolutionDir)=X:\</PathMap>
         <Platforms>x64</Platforms>
@@ -28,10 +29,10 @@
         <None Remove="Controller\CombatModules\BossModPreset_Overworld.json" />
         <None Remove="Controller\CombatModules\BossModPreset.QuestBattle.json" />
         <EmbeddedResource Include="Controller\CombatModules\BossModPreset_Overworld.json">
-            <LogicalName>Questionable.Controller.CombatModules.BossModPreset.Overworld</LogicalName>
+            <LogicalName>QuestionableLanDev.Controller.CombatModules.BossModPreset.Overworld</LogicalName>
         </EmbeddedResource>
         <EmbeddedResource Include="Controller\CombatModules\BossModPreset_QuestBattle.json">
-            <LogicalName>Questionable.Controller.CombatModules.BossModPreset.QuestBattle</LogicalName>
+            <LogicalName>QuestionableLanDev.Controller.CombatModules.BossModPreset.QuestBattle</LogicalName>
         </EmbeddedResource>
     </ItemGroup>
 

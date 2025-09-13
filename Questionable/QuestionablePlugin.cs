@@ -87,7 +87,7 @@ public sealed class QuestionablePlugin : IDalamudPlugin
             serviceCollection.AddSingleton(toastGui);
             serviceCollection.AddSingleton(gameInteropProvider);
             serviceCollection.AddSingleton(aetheryteList);
-            serviceCollection.AddSingleton(new WindowSystem(nameof(Questionable)));
+            serviceCollection.AddSingleton(new WindowSystem("QuestionableLanDev"));
             serviceCollection.AddSingleton((Configuration?)pluginInterface.GetPluginConfig() ?? new Configuration());
 
             AddBasicFunctionsAndData(serviceCollection);
@@ -104,7 +104,7 @@ public sealed class QuestionablePlugin : IDalamudPlugin
         }
         catch (Exception)
         {
-            chatGui.PrintError("Unable to load plugin, check /xllog for details", "Questionable");
+            chatGui.PrintError("Unable to load plugin, check /xllog for details", "QuestionableLanDev");
             throw;
         }
     }
@@ -117,6 +117,7 @@ public sealed class QuestionablePlugin : IDalamudPlugin
         serviceCollection.AddSingleton<ChatFunctions>();
         serviceCollection.AddSingleton<QuestFunctions>();
         serviceCollection.AddSingleton<AlliedSocietyQuestFunctions>();
+        serviceCollection.AddSingleton<GearFunctions>();
         serviceCollection.AddSingleton<DalamudReflector>();
         serviceCollection.AddSingleton<Mount.MountEvaluator>();
 
@@ -211,6 +212,7 @@ public sealed class QuestionablePlugin : IDalamudPlugin
         serviceCollection.AddTaskExecutor<Jump.SingleJumpTask, Jump.DoSingleJump>();
         serviceCollection.AddTaskExecutor<Jump.RepeatedJumpTask, Jump.DoRepeatedJumps>();
         serviceCollection.AddTaskFactoryAndExecutor<Dive.Task, Dive.Factory, Dive.DoDive>();
+        serviceCollection.AddTaskFactoryAndExecutor<Repair.Task, Repair.Factory, Repair.Executor>();
         serviceCollection.AddTaskFactoryAndExecutor<Say.Task, Say.Factory, Say.UseChat>();
         serviceCollection.AddTaskFactory<UseItem.Factory>();
         serviceCollection.AddTaskExecutor<UseItem.UseOnGround, UseItem.UseOnGroundExecutor>();
@@ -314,6 +316,7 @@ public sealed class QuestionablePlugin : IDalamudPlugin
         serviceCollection.AddSingleton<SinglePlayerDutyConfigComponent>();
         serviceCollection.AddSingleton<StopConditionComponent>();
         serviceCollection.AddSingleton<NotificationConfigComponent>();
+        serviceCollection.AddSingleton<RepairConfigComponent>();
         serviceCollection.AddSingleton<DebugConfigComponent>();
     }
 

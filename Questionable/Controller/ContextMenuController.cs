@@ -190,7 +190,7 @@ internal sealed class ContextMenuController : IDisposable
             _questController.StartGatheringQuest("SatisfactionSupply prepare gathering");
         }
         else
-            _chatGui.PrintError($"No associated quest ({info.QuestId}).", "Questionable");
+            _chatGui.PrintError($"No associated quest ({info.QuestId}).", "QuestionableLanDev");
     }
 
     public void Dispose()

@@ -24,7 +24,7 @@ internal sealed class JournalProgressWindow : LWindow, IDisposable
         GatheringJournalComponent gatheringJournalComponent,
         QuestRegistry questRegistry,
         IClientState clientState)
-        : base("Journal Progress###QuestionableJournalProgress")
+        : base("Journal Progress###QuestionableLanDevJournalProgress")
     {
         _questJournalComponent = questJournalComponent;
         _alliedSocietyJournalComponent = alliedSocietyJournalComponent;

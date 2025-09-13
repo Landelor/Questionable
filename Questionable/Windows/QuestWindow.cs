@@ -46,7 +46,7 @@ internal sealed class QuestWindow : LWindow, IPersistableWindowConfig
         IFramework framework,
         InteractionUiController interactionUiController,
         ConfigWindow configWindow)
-        : base($"Questionable v{PluginVersion.ToString(2)}###Questionable",
+        : base($"QuestionableLanDev v{PluginVersion.ToString(2)}###QuestionableLanDev",
             ImGuiWindowFlags.AlwaysAutoResize)
     {
         _pluginInterface = pluginInterface;

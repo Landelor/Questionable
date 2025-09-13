@@ -25,7 +25,7 @@ namespace Questionable.Windows;
 
 internal sealed class QuestSelectionWindow : LWindow
 {
-    private const string WindowId = "###QuestionableQuestSelection";
+    private const string WindowId = "###QuestionableLanDevQuestSelection";
     private readonly QuestData _questData;
     private readonly IGameGui _gameGui;
     private readonly IChatGui _chatGui;

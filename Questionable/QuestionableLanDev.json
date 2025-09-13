@@ -1,0 +1,12 @@
+﻿{
+  "Name": "QuestionableLanDev",
+  "Author": "Liza Carvelli, WigglyMuffin, LanDev",
+  "Punchline": "A quest helper plugin with gear repair functionality.",
+  "Description": "A quest helper plugin which does quests for you automatically where possible. Uses navmesh to automatically walk to all quest waypoints, and tries to automatically complete all steps along the way (excluding dungeons, single player duties and combat).\n\nIncludes automatic gear repair functionality that monitors durability and repairs when needed.\n\nNot all quests are supported, check the discord or git repository for an up-to-date list.\n\nRequired Plugins: vnavmesh, TextAdvance, Lifestream",
+  "Tags": [
+    "quests",
+    "msq"
+  ],
+  "RepoUrl": "https://github.com/WigglyMuffin/Questionable",
+  "IconUrl": "https://raw.githubusercontent.com/WigglyMuffin/DalamudPlugins/main/icons/Questionable.png"
+}

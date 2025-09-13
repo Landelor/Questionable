@@ -64,7 +64,7 @@ internal sealed class WrathComboModule : ICombatModule, IDisposable
     {
         try
         {
-            _lease = _registerForLeaseWithCallback.InvokeFunc("Questionable", "Questionable", CallbackPrefix);
+            _lease = _registerForLeaseWithCallback.InvokeFunc("QuestionableLanDev", "QuestionableLanDev", CallbackPrefix);
             if (_lease != null)
             {
                 _logger.LogDebug("Wrath combo lease: {Lease}", _lease.Value);

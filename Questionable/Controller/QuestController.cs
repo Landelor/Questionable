@@ -27,6 +27,8 @@ internal sealed class QuestController : MiniTaskController<QuestController>
     private readonly IClientState _clientState;
     private readonly GameFunctions _gameFunctions;
     private readonly QuestFunctions _questFunctions;
+    private readonly GearFunctions _gearFunctions;
+    private readonly Repair.Factory _repairFactory;
     private readonly MovementController _movementController;
     private readonly CombatController _combatController;
     private readonly GatheringController _gatheringController;
@@ -75,6 +77,8 @@ internal sealed class QuestController : MiniTaskController<QuestController>
         IClientState clientState,
         GameFunctions gameFunctions,
         QuestFunctions questFunctions,
+        GearFunctions gearFunctions,
+        Repair.Factory repairFactory,
         MovementController movementController,
         CombatController combatController,
         GatheringController gatheringController,
@@ -95,6 +99,8 @@ internal sealed class QuestController : MiniTaskController<QuestController>
         _clientState = clientState;
         _gameFunctions = gameFunctions;
         _questFunctions = questFunctions;
+        _gearFunctions = gearFunctions;
+        _repairFactory = repairFactory;
         _movementController = movementController;
         _combatController = combatController;
         _gatheringController = gatheringController;
@@ -223,6 +229,7 @@ internal sealed class QuestController : MiniTaskController<QuestController>
             return;
 
         UpdateCurrentQuest();
+        CheckForRepairNeeds();
 
         if (!_clientState.IsLoggedIn)
         {
@@ -1062,6 +1069,25 @@ internal sealed class QuestController : MiniTaskController<QuestController>
     {
         _logger.LogInformation("Last update: {Update}", _lastTaskUpdate);
         return IsRunning || DateTime.Now <= _lastTaskUpdate.Add(timeSpan);
+    }
+
+    private void CheckForRepairNeeds()
+    {
+        if (!_configuration.Repairs.Enabled || !IsRunning)
+            return;
+
+        if (_gearFunctions.NeedsRepair(_configuration.Repairs.DurabilityThreshold))
+        {
+            _logger.LogInformation("Gear needs repair - interrupting quest to repair");
+
+            var repairTask = _repairFactory.CreateRepairTask();
+
+            if (repairTask != null)
+            {
+                _logger.LogDebug("Adding repair task to queue");
+                _taskQueue.InterruptWith([repairTask]);
+            }
+        }
     }
 
     private void OnConditionChange(ConditionFlag flag, bool value)
