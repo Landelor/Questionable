@@ -5,6 +5,8 @@ using System.Linq;
 using System.Numerics;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Plugin.Services;
+using Microsoft.Extensions.Logging;
+using Questionable.Controller;
 using Questionable.Controller.Steps.Common;
 using Questionable.Controller.Utils;
 using Questionable.Data;
@@ -124,10 +126,11 @@ internal static class WaitAtEnd
                 {
                     var complete = new WaitQuestCompleted(step.TurnInQuestId ?? quest.Id);
                     var delay = new WaitDelay();
+                    var waitCoffer = new WaitCofferProcessing(step.TurnInQuestId ?? quest.Id);
                     if (step.TurnInQuestId != null)
-                        return [complete, delay, Next(quest, sequence)];
+                        return [complete, delay, waitCoffer, Next(quest, sequence)];
                     else
-                        return [complete, delay];
+                        return [complete, delay, waitCoffer];
                 }
 
                 case EInteractionType.Interact:
@@ -259,9 +262,88 @@ internal static class WaitAtEnd
         public override bool ShouldInterruptOnDamage() => false;
     }
 
+    internal sealed record WaitCofferProcessing(ElementId QuestId) : ITask
+    {
+        public override string ToString() => $"WaitCofferProcessing({QuestId})";
+    }
+
     internal sealed record NextStep(ElementId ElementId, int Sequence) : ILastTask
     {
         public override string ToString() => "NextStep";
+    }
+
+    internal sealed class WaitCofferProcessingExecutor(
+        Configuration configuration,
+        CofferController cofferController,
+        ILogger<WaitCofferProcessingExecutor> logger) : TaskExecutor<WaitCofferProcessing>
+    {
+        private bool _cofferProcessingStarted;
+        private bool _initialLoggedInUpdate;
+
+        protected override bool Start()
+        {
+            logger.LogInformation("WaitCofferProcessingExecutor.Start() called for quest {QuestId}", Task.QuestId);
+            logger.LogDebug("AutoOpenCoffers configuration is {Enabled}",
+                configuration.General.AutoOpenCoffers ? "enabled" : "disabled");
+
+            // Only start coffer processing if auto-open coffers is enabled
+            if (!configuration.General.AutoOpenCoffers)
+            {
+                logger.LogInformation("Skipping coffer processing - AutoOpenCoffers is disabled");
+                _cofferProcessingStarted = false;
+                return true; // Skip processing, complete immediately
+            }
+
+            // Signal CofferController to start processing coffers for this quest
+            logger.LogInformation("Starting coffer processing for quest {QuestId}", Task.QuestId);
+            cofferController.OnQuestCompleted(Task.QuestId);
+            _cofferProcessingStarted = true;
+            _initialLoggedInUpdate = false;
+            return true;
+        }
+
+        public override ETaskResult Update()
+        {
+            // Log initial state in first Update() call
+            if (!_initialLoggedInUpdate)
+            {
+                logger.LogDebug("WaitCofferProcessingExecutor.Update() - Initial state: AutoOpenCoffers={Enabled}, Started={Started}, IsRunning={IsRunning}, HasPendingFromQuest={HasPending}, PendingCount={PendingCount}",
+                    configuration.General.AutoOpenCoffers,
+                    _cofferProcessingStarted,
+                    cofferController.IsRunning,
+                    cofferController.HasPendingCoffersFromQuest,
+                    cofferController.PendingCofferCount);
+                _initialLoggedInUpdate = true;
+            }
+
+            // If auto-open coffers is disabled, complete immediately
+            if (!configuration.General.AutoOpenCoffers || !_cofferProcessingStarted)
+            {
+                logger.LogDebug("Completing immediately - AutoOpenCoffers disabled or processing not started");
+                return ETaskResult.TaskComplete;
+            }
+
+            // Check if CofferController is still running
+            if (cofferController.IsRunning)
+            {
+                logger.LogTrace("CofferController is still running, waiting... (PendingCount: {PendingCount})",
+                    cofferController.PendingCofferCount);
+                return ETaskResult.StillRunning;
+            }
+
+            // If no coffers were acquired from this quest, complete immediately
+            if (!cofferController.HasPendingCoffersFromQuest && cofferController.PendingCofferCount == 0)
+            {
+                logger.LogInformation("No coffers were acquired from quest {QuestId}, completing task", Task.QuestId);
+                return ETaskResult.TaskComplete;
+            }
+
+            // CofferController has finished processing all coffers
+            logger.LogInformation("CofferController finished processing all coffers for quest {QuestId}", Task.QuestId);
+            return ETaskResult.TaskComplete;
+        }
+
+        public override bool ShouldInterruptOnDamage() => false;
     }
 
     internal sealed class NextStepExecutor : TaskExecutor<NextStep>
