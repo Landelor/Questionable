@@ -13,6 +13,7 @@ using Questionable.External;
 using Questionable.Functions;
 using Questionable.Model;
 using Questionable.Model.Questing;
+using Questionable.Controller;
 
 namespace Questionable.Controller.Steps.Interactions;
 
@@ -106,6 +107,7 @@ internal static class Interact
     internal sealed class DoInteract(
         GameFunctions gameFunctions,
         QuestFunctions questFunctions,
+        CofferController cofferController,
         ICondition condition,
         ILogger<DoInteract> logger)
         : TaskExecutor<Task>, IConditionChangeAware
@@ -126,6 +128,13 @@ internal static class Interact
         protected override bool Start()
         {
             InteractionType = Task.InteractionType;
+
+            // Prepare coffer processing for quest completion
+            if (Task.InteractionType == EInteractionType.CompleteQuest && Task.Quest != null)
+            {
+                logger.LogInformation("Preparing coffer controller for quest completion: {QuestId}", Task.Quest.Id);
+                cofferController.PrepareForQuestCompletion(Task.Quest.Id);
+            }
 
             IGameObject? gameObject = gameFunctions.FindObjectByDataId(Task.DataId);
             if (gameObject == null)

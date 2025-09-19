@@ -18,6 +18,7 @@ using Questionable.Functions;
 using Questionable.Model;
 using Questionable.Model.Questing;
 using Questionable.Windows.ConfigComponents;
+using System.Runtime.CompilerServices;
 using Quest = Questionable.Model.Quest;
 
 namespace Questionable.Controller;
@@ -30,6 +31,7 @@ internal sealed class QuestController : MiniTaskController<QuestController>
     private readonly MovementController _movementController;
     private readonly CombatController _combatController;
     private readonly GatheringController _gatheringController;
+    private readonly CofferController _cofferController;
     private readonly QuestRegistry _questRegistry;
     private readonly IKeyState _keyState;
     private readonly IChatGui _chatGui;
@@ -78,6 +80,7 @@ internal sealed class QuestController : MiniTaskController<QuestController>
         MovementController movementController,
         CombatController combatController,
         GatheringController gatheringController,
+        CofferController cofferController,
         ILogger<QuestController> logger,
         QuestRegistry questRegistry,
         IKeyState keyState,
@@ -98,6 +101,7 @@ internal sealed class QuestController : MiniTaskController<QuestController>
         _movementController = movementController;
         _combatController = combatController;
         _gatheringController = gatheringController;
+        _cofferController = cofferController;
         _questRegistry = questRegistry;
         _keyState = keyState;
         _chatGui = chatGui;
@@ -267,6 +271,14 @@ internal sealed class QuestController : MiniTaskController<QuestController>
             }
         }
 
+        // Block progression while coffers are being processed
+        // This must come BEFORE timeout checks to prevent false timeouts during coffer processing
+        if (_cofferController.IsProcessingInventoryCoffers && _configuration.General.AutoOpenCoffers)
+        {
+            DebugState = "Processing inventory coffers";
+            return;
+        }
+
         if (AutomationType == EAutomationType.Automatic &&
             (_taskQueue.AllTasksComplete || _taskQueue.CurrentTaskExecutor?.CurrentTask is WaitAtEnd.WaitQuestAccepted)
             && CurrentQuest is { Sequence: 0, Step: 0 } or { Sequence: 0, Step: 255 }
@@ -313,7 +325,8 @@ internal sealed class QuestController : MiniTaskController<QuestController>
             _gameFunctions.IsOccupied() ||
             _movementController.IsPathfinding ||
             _movementController.IsPathRunning ||
-            DateTime.Now < _safeAnimationEnd)
+            DateTime.Now < _safeAnimationEnd ||
+            (_cofferController.IsProcessingInventoryCoffers && _configuration.General.AutoOpenCoffers))
         {
             _lastProgressUpdate = DateTime.Now;
             return;
@@ -351,6 +364,10 @@ internal sealed class QuestController : MiniTaskController<QuestController>
 
                 _chatGui.Print($"Automatically refreshing quest step as no progress detected for {timeSinceProgress.TotalSeconds:F0} seconds.",
                     CommandHandler.MessageTag, CommandHandler.TagColor);
+
+                // Add protection before clearing tasks
+                if (ShouldDeferTaskClearingForCoffers("CheckAutoRefreshCondition"))
+                    return;
 
                 ClearTasksInternal();
 
@@ -468,6 +485,13 @@ internal sealed class QuestController : MiniTaskController<QuestController>
                             return;
                         }
 
+                        // Quest completed without new quest - process coffers immediately since TextAdvance path doesn't use OnTaskComplete
+                        if (_configuration.General.AutoOpenCoffers)
+                        {
+                            _logger.LogInformation("Quest completed without new quest - processing coffers via UpdateCurrentQuest");
+                            _cofferController.ProcessAllCoffersInInventory();
+                        }
+
                         _logger.LogInformation("No current quest, resetting data [CQI: {CurrrentQuestData}], [CQ: {QuestData}], [MSQ: {MsqData}]", _questFunctions.GetCurrentQuestInternal(true), _questFunctions.GetCurrentQuest(), _questFunctions.GetMainScenarioQuest());
                         _startedQuest = null;
                         Stop("Resetting current quest");
@@ -490,6 +514,13 @@ internal sealed class QuestController : MiniTaskController<QuestController>
                     }
                     else if (_questRegistry.TryGetQuest(currentQuestId, out var quest))
                     {
+                        // Quest completed with new quest - process coffers immediately since TextAdvance path doesn't use OnTaskComplete
+                        if (_startedQuest != null && _configuration.General.AutoOpenCoffers)
+                        {
+                            _logger.LogInformation("Quest completed with new quest - processing coffers via UpdateCurrentQuest (previous: {PreviousQuestId}, new: {NewQuestId})", _startedQuest.Quest.Id, currentQuestId);
+                            _cofferController.ProcessAllCoffersInInventory();
+                        }
+
                         _logger.LogInformation("New quest: {QuestName}", quest.Info.Name);
                         _startedQuest = new QuestProgress(quest, currentSequence);
 
@@ -650,9 +681,23 @@ internal sealed class QuestController : MiniTaskController<QuestController>
             ExecuteNextStep();
     }
 
-    private void ClearTasksInternal()
+    private bool ShouldDeferTaskClearingForCoffers(string context)
     {
-        //_logger.LogDebug("Clearing task (internally)");
+        bool isProcessing = _cofferController.IsProcessingInventoryCoffers && _configuration.General.AutoOpenCoffers;
+        _logger.LogDebug("Task clearing check - Context: {Context}, IsProcessingCoffers: {IsProcessing}, AutoOpenCoffers: {AutoOpenCoffers}",
+            context, _cofferController.IsProcessingInventoryCoffers, _configuration.General.AutoOpenCoffers);
+
+        if (isProcessing)
+        {
+            _logger.LogInformation("Deferring task clearing for {Context} due to coffer processing", context);
+            return true;
+        }
+        return false;
+    }
+
+    private void ClearTasksInternal([CallerMemberName] string callerName = "")
+    {
+        _logger.LogDebug("ClearTasksInternal called by: {CallerName}", callerName);
         if (_taskQueue.CurrentTaskExecutor is IStoppableTaskExecutor stoppableTaskExecutor)
             stoppableTaskExecutor.StopNow();
 
@@ -660,6 +705,7 @@ internal sealed class QuestController : MiniTaskController<QuestController>
 
         _combatController.Stop("ClearTasksInternal");
         _gatheringController.Stop("ClearTasksInternal");
+        _cofferController.Stop("ClearTasksInternal");
     }
 
     public override void Stop(string label)
@@ -667,12 +713,20 @@ internal sealed class QuestController : MiniTaskController<QuestController>
         using var scope = _logger.BeginScope($"Stop/{label}");
         if (IsRunning || AutomationType != EAutomationType.Manual)
         {
+            // Add protection before clearing tasks
+            if (ShouldDeferTaskClearingForCoffers($"Stop({label})"))
+            {
+                _logger.LogInformation("Deferring Stop({Label}) - will retry when coffer processing completes", label);
+                return;
+            }
+
             ClearTasksInternal();
             _logger.LogInformation("Stopping automatic questing");
             AutomationType = EAutomationType.Manual;
             _nextQuest = null;
             _gatheringQuest = null;
             _lastTaskUpdate = DateTime.Now;
+            _cofferController.Stop(label);
 
             ResetAutoRefreshState();
         }
@@ -684,6 +738,7 @@ internal sealed class QuestController : MiniTaskController<QuestController>
         _movementController.Stop();
         _combatController.Stop(label);
         _gatheringController.Stop(label);
+        _cofferController.Stop(label);
     }
 
     private void CheckNextTasks(string label)
@@ -691,6 +746,13 @@ internal sealed class QuestController : MiniTaskController<QuestController>
         if (AutomationType is EAutomationType.Automatic or EAutomationType.SingleQuestA or EAutomationType.SingleQuestB)
         {
             using var scope = _logger.BeginScope(label);
+
+            // Block clearing tasks while coffers are being processed
+            if (_cofferController.IsProcessingInventoryCoffers && _configuration.General.AutoOpenCoffers)
+            {
+                _logger.LogInformation("Deferring CheckNextTasks due to coffer processing");
+                return;
+            }
 
             ClearTasksInternal();
 
@@ -750,8 +812,11 @@ internal sealed class QuestController : MiniTaskController<QuestController>
 
     protected override void OnTaskComplete(ITask task)
     {
-        if (task is WaitAtEnd.WaitQuestCompleted)
+        if (task is WaitAtEnd.WaitQuestCompleted questCompleted)
+        {
             _simulatedQuest = null;
+            // Coffer processing is handled in UpdateCurrentQuest - removed duplicate processing here
+        }
     }
 
     protected override void OnNextStep(ILastTask task)
@@ -789,6 +854,10 @@ internal sealed class QuestController : MiniTaskController<QuestController>
 
     private void ExecuteNextStep()
     {
+        // Add protection before clearing tasks
+        if (ShouldDeferTaskClearingForCoffers("ExecuteNextStep"))
+            return;
+
         ClearTasksInternal();
 
         if (TryPickPriorityQuest())

@@ -117,6 +117,8 @@ public sealed class QuestionablePlugin : IDalamudPlugin
         serviceCollection.AddSingleton<ChatFunctions>();
         serviceCollection.AddSingleton<QuestFunctions>();
         serviceCollection.AddSingleton<AlliedSocietyQuestFunctions>();
+        serviceCollection.AddSingleton<CofferFunctions>();
+        serviceCollection.AddSingleton<InventoryMonitoringFunctions>();
         serviceCollection.AddSingleton<DalamudReflector>();
         serviceCollection.AddSingleton<Mount.MountEvaluator>();
 
@@ -244,6 +246,7 @@ public sealed class QuestionablePlugin : IDalamudPlugin
         serviceCollection.AddTaskExecutor<WaitAtEnd.WaitObjectAtPosition, WaitAtEnd.WaitObjectAtPositionExecutor>();
         serviceCollection.AddTaskExecutor<WaitAtEnd.WaitQuestAccepted, WaitAtEnd.WaitQuestAcceptedExecutor>();
         serviceCollection.AddTaskExecutor<WaitAtEnd.WaitQuestCompleted, WaitAtEnd.WaitQuestCompletedExecutor>();
+        serviceCollection.AddTaskExecutor<WaitAtEnd.WaitCofferProcessing, WaitAtEnd.WaitCofferProcessingExecutor>();
         serviceCollection.AddTaskExecutor<WaitAtEnd.NextStep, WaitAtEnd.NextStepExecutor>();
         serviceCollection.AddTaskExecutor<WaitAtEnd.EndAutomation, WaitAtEnd.EndAutomationExecutor>();
 
@@ -261,6 +264,7 @@ public sealed class QuestionablePlugin : IDalamudPlugin
         serviceCollection.AddSingleton<QuestController>();
         serviceCollection.AddSingleton<CombatController>();
         serviceCollection.AddSingleton<GatheringController>();
+        serviceCollection.AddSingleton<CofferController>();
         serviceCollection.AddSingleton<ContextMenuController>();
         serviceCollection.AddSingleton<ShopController>();
         serviceCollection.AddSingleton<InterruptHandler>();
@@ -342,6 +346,7 @@ public sealed class QuestionablePlugin : IDalamudPlugin
         serviceProvider.GetRequiredService<SinglePlayerDutyConfigComponent>().Reload();
         serviceProvider.GetRequiredService<CommandHandler>();
         serviceProvider.GetRequiredService<ContextMenuController>();
+        serviceProvider.GetRequiredService<CofferController>();
         serviceProvider.GetRequiredService<CraftworksSupplyController>();
         serviceProvider.GetRequiredService<CreditsController>();
         serviceProvider.GetRequiredService<HelpUiController>();

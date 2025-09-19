@@ -227,6 +227,32 @@ internal sealed class GeneralConfigComponent : ConfigComponent
                     $"Quest steps will refresh automatically after {autoStepRefreshDelay} seconds if no progress is made.");
                 ImGui.Unindent();
             }
+
+            ImGui.Spacing();
+            bool autoOpenCoffers = Configuration.General.AutoOpenCoffers;
+            if (ImGui.Checkbox("Automatically open coffers during questing", ref autoOpenCoffers))
+            {
+                Configuration.General.AutoOpenCoffers = autoOpenCoffers;
+                Save();
+            }
+
+            ImGui.SameLine();
+            using (ImRaii.PushFont(UiBuilder.IconFont))
+            {
+                ImGui.TextDisabled(FontAwesomeIcon.InfoCircle.ToIconString());
+            }
+
+            if (ImGui.IsItemHovered())
+            {
+                using (ImRaii.Tooltip())
+                {
+                    ImGui.Text("When enabled, Questionable will automatically open any coffers obtained during quest completion.");
+                    ImGui.Text("This includes job coffers, gear coffers, and other container items received as quest rewards.");
+                    ImGui.Text("Coffers will only be opened when it's safe to do so (not during combat, cutscenes, etc.)");
+                    ImGui.Separator();
+                    ImGui.TextColored(new System.Numerics.Vector4(1.0f, 0.8f, 0.0f, 1.0f), "Note: Ensure you have adequate inventory space before enabling this feature.");
+                }
+            }
         }
     }
 }

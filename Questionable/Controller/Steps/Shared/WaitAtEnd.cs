@@ -24,22 +24,32 @@ internal static class WaitAtEnd
         ICondition condition,
         TerritoryData territoryData,
         AutoDutyIpc autoDutyIpc,
-        BossModIpc bossModIpc)
+        BossModIpc bossModIpc,
+        ILogger<Factory> logger)
         : ITaskFactory
     {
         public IEnumerable<ITask> CreateAllTasks(Quest quest, QuestSequence sequence, QuestStep step)
         {
+            logger.LogInformation("WaitAtEnd.Factory called for quest {QuestId}, sequence {Sequence}, interactionType {InteractionType}",
+                quest.Id, sequence.Sequence, step.InteractionType);
             if (step.CompletionQuestVariablesFlags.Count == 6 &&
                 QuestWorkUtils.HasCompletionFlags(step.CompletionQuestVariablesFlags))
             {
+                logger.LogInformation("CompletionQuestVariablesFlags condition met for quest {QuestId}, using WaitForCompletionFlags path", quest.Id);
                 var task = new WaitForCompletionFlags((QuestId)quest.Id, step);
                 var delay = new WaitDelay();
-                return [task, delay, Next(quest, sequence)];
+                var tasks = new ITask[] { task, delay, Next(quest, sequence) };
+                logger.LogInformation("CompletionFlags task sequence: {TaskCount} tasks - {TaskTypes}",
+                    tasks.Length, string.Join(", ", tasks.Select(t => t.GetType().Name)));
+                return tasks;
             }
+
+            logger.LogInformation("Entering switch statement for interactionType {InteractionType}", step.InteractionType);
 
             switch (step.InteractionType)
             {
                 case EInteractionType.Combat:
+                    logger.LogDebug("Processing Combat case for quest {QuestId}", quest.Id);
                     if (step.EnemySpawnType == EEnemySpawnType.FinishCombatIfAny)
                         return [Next(quest, sequence)];
 
@@ -56,6 +66,7 @@ internal static class WaitAtEnd
                 case EInteractionType.WaitForManualProgress:
                 case EInteractionType.Instruction:
                 case EInteractionType.Snipe:
+                    logger.LogDebug("Processing {InteractionType} case for quest {QuestId}", step.InteractionType, quest.Id);
                     return [new WaitNextStepOrSequence()];
 
                 case EInteractionType.Duty when !autoDutyIpc.IsConfiguredToRunContent(step.DutyOptions):
@@ -114,6 +125,7 @@ internal static class WaitAtEnd
 
                 case EInteractionType.AcceptQuest:
                 {
+                    logger.LogDebug("Processing AcceptQuest case for quest {QuestId}", quest.Id);
                     var accept = new WaitQuestAccepted(step.PickUpQuestId ?? quest.Id);
                     var delay = new WaitDelay();
                     if (step.PickUpQuestId != null)
@@ -124,18 +136,23 @@ internal static class WaitAtEnd
 
                 case EInteractionType.CompleteQuest:
                 {
+                    logger.LogDebug("CompleteQuest case executed for quest {QuestId}", quest.Id);
+
                     var complete = new WaitQuestCompleted(step.TurnInQuestId ?? quest.Id);
                     var delay = new WaitDelay();
-                    var waitCoffer = new WaitCofferProcessing(step.TurnInQuestId ?? quest.Id);
+
                     if (step.TurnInQuestId != null)
-                        return [complete, delay, waitCoffer, Next(quest, sequence)];
+                        return [complete, delay, Next(quest, sequence)];
                     else
-                        return [complete, delay, waitCoffer];
+                        return [complete, delay];
                 }
 
                 case EInteractionType.Interact:
                 default:
-                    return [new WaitDelay(), Next(quest, sequence)];
+                    var defaultTasks = new ITask[] { new WaitDelay(), Next(quest, sequence) };
+                    logger.LogInformation("Default case executed for quest {QuestId}, interactionType {InteractionType}, returning {TaskCount} tasks - {TaskTypes}",
+                        quest.Id, step.InteractionType, defaultTasks.Length, string.Join(", ", defaultTasks.Select(t => t.GetType().Name)));
+                    return defaultTasks;
             }
         }
 
@@ -307,12 +324,13 @@ internal static class WaitAtEnd
             // Log initial state in first Update() call
             if (!_initialLoggedInUpdate)
             {
-                logger.LogDebug("WaitCofferProcessingExecutor.Update() - Initial state: AutoOpenCoffers={Enabled}, Started={Started}, IsRunning={IsRunning}, HasPendingFromQuest={HasPending}, PendingCount={PendingCount}",
+                logger.LogDebug("WaitCofferProcessingExecutor.Update() - Initial state: AutoOpenCoffers={Enabled}, Started={Started}, IsRunning={IsRunning}, HasPendingFromQuest={HasPending}, PendingCount={PendingCount}, IsProcessingInventoryCoffers={IsProcessingInventoryCoffers}",
                     configuration.General.AutoOpenCoffers,
                     _cofferProcessingStarted,
                     cofferController.IsRunning,
                     cofferController.HasPendingCoffersFromQuest,
-                    cofferController.PendingCofferCount);
+                    cofferController.PendingCofferCount,
+                    cofferController.IsProcessingInventoryCoffers);
                 _initialLoggedInUpdate = true;
             }
 
@@ -320,6 +338,14 @@ internal static class WaitAtEnd
             if (!configuration.General.AutoOpenCoffers || !_cofferProcessingStarted)
             {
                 logger.LogDebug("Completing immediately - AutoOpenCoffers disabled or processing not started");
+                return ETaskResult.TaskComplete;
+            }
+
+            // Safety check: if coffers are being processed by ProcessAllCoffersInInventory, complete immediately
+            // This prevents conflicts when coffers were already processed by the main quest completion flow
+            if (cofferController.IsProcessingInventoryCoffers)
+            {
+                logger.LogInformation("CofferController is processing inventory coffers via ProcessAllCoffersInInventory - completing WaitCofferProcessing task");
                 return ETaskResult.TaskComplete;
             }
 
